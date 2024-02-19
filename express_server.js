@@ -9,6 +9,20 @@ const urlDatabase = {
   "9sm5xK": "http://www.google.com"
 };
 
+// returns string of 6 pseudo-random alphanumeric characters
+function generateRandomString() {
+  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+  let x = 0;
+  let randomString = "";
+  while (x < 6) {
+    randomString += (characters[Math.floor(Math.random() * 62)]);
+    x += 1;
+  }
+  return randomString;
+}
+
+
+
 app.use(express.urlencoded({ extended: true }));
 
 app.post("/urls", (req, res) => {
@@ -33,8 +47,6 @@ app.get("/urls/:id", (req, res) => {
   const templateVars = { id: req.params.id, longURL: urlDatabase[req.params.id] }; //or maybe [req.params.id]
   res.render("urls_show", templateVars);
 });
-
-
 
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
