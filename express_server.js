@@ -31,10 +31,21 @@ app.post("/urls", (req, res) => {
   res.redirect(`/urls/${id}`);
 });
 
+app.post("/urls/:id/edit", (req, res) => {
+  const id = req.params.id
+  res.redirect(`/urls/${id}`)
+});
+
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
 });
+
+app.post("/urls/:id", (req, res) => {
+  const id = req.params.id;
+  urlDatabase[id] = req.body.updatedLongURL
+  res.redirect('/urls')
+})
 
 app.get("/", (req, res) => {
   res.send("Hello!");
