@@ -90,7 +90,6 @@ app.post('/register', (req, res) => {
   const user_password = req.body.password;
   if (user_email === "" || user_password === "") {
     res.status(400).send("Error 400: email and password cannot be empty");
-    res.end();
   } else if (getUserByEmail(user_email) !== null) {
     res.status(400).send("Error 400: User already exists.")
   } else {
