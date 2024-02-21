@@ -24,6 +24,11 @@ const users = {
     id: "user2RandomID",
     email: "user2@example.com",
     password: "dishwasher-funk"
+  },
+  ITqMS2: {
+    id: "ITqMS2",
+    email: "me@example.com",
+    password: "me"
   }
 };
 
@@ -41,8 +46,6 @@ function generateRandomString() {
 
 // home
 app.get("/", (req, res) => {
-  // recommended by Nally for debugging
-  console.log(`users ${JSON.stringify(users)}`);
   res.send("Hello!");
 });
 
@@ -50,7 +53,6 @@ app.get("/", (req, res) => {
 app.post("/login", (req, res) => {
   const username = req.body.username;
   if (username !== "") {
-    res.cookie("username", username);
     res.redirect('/urls');
   }
   // Likely should add error message to client that username cannot be empty
@@ -60,20 +62,20 @@ app.post("/login", (req, res) => {
 // register
 app.get('/register', (req, res) => {
   const templateVars = {
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]],
   };
   // should add test that username does not always exist in POST /register
   res.render("register", templateVars);
 });
 
-app.post('/register' , (req, res) => {
+app.post('/register', (req, res) => {
   const user_email = req.body.email;
   const user_password = req.body.password;
   const user_id = generateRandomString();
-  users[user_id] = {id: user_id, email: user_email, password: user_password}
+  users[user_id] = { id: user_id, email: user_email, password: user_password };
   res.cookie("user_id", user_id);
   res.redirect('/urls');
-})
+});
 
 // logout
 app.post("/logout", (req, res) => {
@@ -83,8 +85,12 @@ app.post("/logout", (req, res) => {
 
 // urls
 app.get("/urls", (req, res) => {
+  // recommended by Nally for debugging
+  const user_id = req.cookies["user_id"];
+  console.log(`active user ${JSON.stringify(users[user_id])}`);
+
   const templateVars = {
-    username: req.cookies["username"],
+    user: users[req.cookies["user_id"]],
     urls: urlDatabase
   };
   res.render("urls_index", templateVars);
@@ -99,7 +105,7 @@ app.post("/urls", (req, res) => {
 // new short URL
 app.get("/urls/new", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"]
+    user: users[req.cookies["user_id"]],
   };
   res.render("urls_new", templateVars);
 });
@@ -107,7 +113,7 @@ app.get("/urls/new", (req, res) => {
 // short url in detail
 app.get("/urls/:id", (req, res) => {
   const templateVars = {
-    username: req.cookies["username"],
+    user: users[req.cookies["user_id"]],
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
