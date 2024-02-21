@@ -4,6 +4,7 @@ const app = express();
 const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
+
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
@@ -11,6 +12,19 @@ app.use(cookieParser());
 const urlDatabase = {
   "b2xVn2": "http://www.lighthouselabs.ca",
   "9sm5xK": "http://www.google.com"
+};
+
+const users = {
+  userRandomID: {
+    id: "userRandomID",
+    email: "user@example.com",
+    password: "purple-dino12"
+  },
+  user2RandomID: {
+    id: "user2RandomID",
+    email: "user2@example.com",
+    password: "dishwasher-funk"
+  }
 };
 
 // returns string of 6 pseudo-random alphanumeric characters
@@ -28,7 +42,7 @@ function generateRandomString() {
 // home
 app.get("/", (req, res) => {
   // recommended by Nally for debugging
-  console.log(`urlDatabase ${urlDatabase}`);
+  console.log(`users ${JSON.stringify(users)}`);
   res.send("Hello!");
 });
 
@@ -51,6 +65,15 @@ app.get('/register', (req, res) => {
   // should add test that username does not always exist in POST /register
   res.render("register", templateVars);
 });
+
+app.post('/register' , (req, res) => {
+  const user_email = req.body.email;
+  const user_password = req.body.password;
+  const user_id = generateRandomString();
+  users[user_id] = {id: user_id, email: user_email, password: user_password}
+  res.cookie("user_id", user_id);
+  res.redirect('/urls');
+})
 
 // logout
 app.post("/logout", (req, res) => {
@@ -97,13 +120,13 @@ app.post("/urls/:id", (req, res) => {
   res.redirect('/urls');
 });
 
-    // short url - edit
+// short url - edit
 app.post("/urls/:id/edit", (req, res) => {
   const id = req.params.id;
   res.redirect(`/urls/${id}`);
 });
 
-    // short url - delete
+// short url - delete
 app.post("/urls/:id/delete", (req, res) => {
   delete urlDatabase[req.params.id];
   res.redirect('/urls');
