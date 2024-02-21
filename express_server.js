@@ -27,13 +27,17 @@ function generateRandomString() {
 
 app.post("/login", (req, res) => {
   const username = req.body.username;
-  res.cookie("username", username);
+  if (username !== "") {
+    res.cookie("username", username);
+    res.redirect('/urls');
+  }
+  // Likely should add error message to client that username cannot be empty
   res.redirect('/urls');
 });
 
 app.post("/logout", (req, res) => {
   res.clearCookie("username");
-  res.redirect("/urls")
+  res.redirect("/urls");
 });
 
 app.post("/urls", (req, res) => {
