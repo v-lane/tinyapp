@@ -63,6 +63,8 @@ app.post("/urls/:id", (req, res) => {
 });
 
 app.get("/", (req, res) => {
+  // recommended by Nally for debugging
+  console.log(`urlDatabase ${urlDatabase}`);
   res.send("Hello!");
 });
 
@@ -70,6 +72,7 @@ app.get('/register', (req, res) => {
   const templateVars = {
     username: req.cookies["username"]
   };
+  // should add test that username does not always exist in POST /register
   res.render("register", templateVars);
 });
 
