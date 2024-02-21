@@ -32,8 +32,11 @@ const users = {
   }
 };
 
-// returns string of 6 pseudo-random alphanumeric characters
-function generateRandomString() {
+/**
+ * Generates pseudo-random 6 character string consisting of alphanumeric characters
+ * @returns {string} 
+ */
+const generateRandomString = function() {
   const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
   let x = 0;
   let randomString = "";
@@ -42,7 +45,22 @@ function generateRandomString() {
     x += 1;
   }
   return randomString;
-}
+};
+
+/**
+ * Given email, checks if user exists in users object.  
+ * @param {string} email - email to check against
+ * @returns {object | null} user object or null
+ */
+const getUserByEmail = function(email) {
+  for (const user in users) {
+    if (users[user].email === email) {
+      return user;
+    }
+  }
+  return null;
+};
+
 
 // home
 app.get("/", (req, res) => {
@@ -64,17 +82,23 @@ app.get('/register', (req, res) => {
   const templateVars = {
     user: users[req.cookies["user_id"]],
   };
-  // should add test that username does not always exist in POST /register
   res.render("register", templateVars);
 });
 
 app.post('/register', (req, res) => {
   const user_email = req.body.email;
   const user_password = req.body.password;
-  const user_id = generateRandomString();
-  users[user_id] = { id: user_id, email: user_email, password: user_password };
-  res.cookie("user_id", user_id);
-  res.redirect('/urls');
+  if (user_email === "" || user_password === "") {
+    res.status(400).send("Error 400: email and password cannot be empty");
+    res.end();
+  } else if (getUserByEmail(user_email) !== null) {
+    res.status(400).send("Error 400: User already exists.")
+  } else {
+    const user_id = generateRandomString();
+    users[user_id] = { id: user_id, email: user_email, password: user_password };
+    res.cookie("user_id", user_id);
+    res.redirect('/urls');
+  }
 });
 
 // logout
@@ -88,6 +112,7 @@ app.get("/urls", (req, res) => {
   // recommended by Nally for debugging
   const user_id = req.cookies["user_id"];
   console.log(`active user ${JSON.stringify(users[user_id])}`);
+  console.log(`all users ${JSON.stringify(users)}`)
 
   const templateVars = {
     user: users[req.cookies["user_id"]],
