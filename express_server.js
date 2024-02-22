@@ -13,7 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: 'session',
   keys: ['keys']
-}))
+}));
 
 // data
 const { urlDatabase, users } = require('./data');
@@ -46,7 +46,7 @@ app.post("/login", (req, res) => {
   if (userObj.err) {
     return res.status(userObj.err.code).send(userObj.err.message);
   }
-  req.session.user_id = userObj.user.id
+  req.session.user_id = userObj.user.id;
   return res.redirect('/urls');
 });
 
@@ -71,13 +71,13 @@ app.post('/register', (req, res) => {
   }
   const newUserID = userObj.user.id;
   users[newUserID] = userObj.user;
-  req.session.user_id = newUserID
+  req.session.user_id = newUserID;
   return res.redirect('/urls');
 });
 
 // logout
 app.post("/logout", (req, res) => {
-  res.clearCookie("user_id");
+  req.session = null;
   res.redirect("/login");
 });
 
