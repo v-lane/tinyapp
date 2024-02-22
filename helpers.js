@@ -87,9 +87,9 @@ const isUserLoggedIn = function(users, cookie_id) {
  * @param {string} id - shortURL ID
  * @returns {boolean}
  */
-const isExistingShortUrl = function(id) {
+const isExistingShortUrl = function(urls, id) {
   if (id === undefined) return false;
-  if (urlDatabase[id] !== undefined) return true;
+  if (urls[id] !== undefined) return true;
   return false;
 };
 
@@ -117,7 +117,8 @@ const urlsForUser = function(urls, id) {
  * @returns {boolean}
  */
 const isUserOwnsUrl = function(urls, urlID, cookieUserID) {
-  if (urlID === undefined) return false;
+  if (!urlID || !cookieUserID ) return false;
+  
   if (cookieUserID === urls[urlID].userID) return true;
   return false;
 };

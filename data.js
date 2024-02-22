@@ -9,6 +9,11 @@ const urlDatabase = {
     urlID: "9sm5xK",
     longURL: "http://www.google.com",
     userID: "aJ48lW"
+  },
+  "0sm5xK": {
+    urlID: "9sm5xK",
+    longURL: "http://www.google.com",
+    userID: "fogitw"
   }
 };
 

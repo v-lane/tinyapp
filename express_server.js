@@ -125,11 +125,14 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
   const urlID = req.params.id;
-  if (!isUserLoggedIn(users, cookie_user_id)) {
-    res.status(401).send("Error 401: Please log in to access URL details.");
+  if (!cookie_user_id) {
+    return res.status(401).send("Error 401: Please log in to access URL details.");
+  }
+  if (!isExistingShortUrl(urlDatabase, urlID)) {
+    return res.status(404).send("Error 404: URL ID does not exist");
   }
   if (!isUserOwnsUrl(urlDatabase, urlID, cookie_user_id)) {
-    res.status(401).send("Error 401: Access denied. User does not own URL.");
+    return res.status(401).send("Error 401: Access denied. User does not own URL.");
   }
   const longURL = urlDatabase[urlID].longURL;
   const templateVars = {
@@ -137,38 +140,58 @@ app.get("/urls/:id", (req, res) => {
     urlID: urlID,
     longURL: longURL
   };
-  res.render("urls_show", templateVars);
+  return res.render("urls_show", templateVars);
 });
 
 app.post("/urls/:id", (req, res) => {
+  const cookie_user_id = req.cookies["user_id"];
   const urlID = req.params.id;
+  if (!isExistingShortUrl(urlDatabase, urlID)) {
+    return res.status(404).send("Error 404: URL ID does not exist");
+  }
+  if (!isUserLoggedIn(users, cookie_user_id)) {
+    return res.status(401).send("Error 401: Please log in to access URL details.");
+  }
+  if (!isUserOwnsUrl(urlDatabase, urlID, cookie_user_id)) {
+    return res.status(401).send("Error 401: Access denied. User does not own URL.");
+  }
   const updatedURL = req.body.updatedLongURL;
   urlDatabase[urlID].longURL = updatedURL;
-  res.redirect('/urls');
+  return res.redirect('/urls');
 });
 
 // short url - edit
 app.post("/urls/:id/edit", (req, res) => {
   const urlID = req.params.id;
-  res.redirect(`/urls/${urlID}`);
+  return res.redirect(`/urls/${urlID}`);
 });
 
 // short url - delete
 app.post("/urls/:id/delete", (req, res) => {
+  const cookie_user_id = req.cookies["user_id"];
   const urlID = req.params.id;
+
+  if (!isExistingShortUrl(urlDatabase, urlID)) {
+    return res.status(404).send("Error 404: URL ID does not exist");
+  }
+  if (!isUserLoggedIn(users, cookie_user_id)) {
+    return res.status(401).send("Error 401: Please log in to access URL details.");
+  }
+  if (!isUserOwnsUrl(urlDatabase, urlID, cookie_user_id)) {
+    return res.status(401).send("Error 401: Access denied. User does not own URL.");
+  }
   delete urlDatabase[urlID];
-  res.redirect('/urls');
+  return res.redirect('/urls');
 });
 
 // external redirect
 app.get('/u/:id', (req, res) => {
   const urlID = req.params.id;
-  if (isExistingShortUrl(urlID)) {
+  if (isExistingShortUrl(urlDatabase, urlID)) {
     const longURL = urlDatabase[urlID].longURL;
-    res.redirect(longURL);
-  } else {
-    res.status(404).send('Error 404: Short URL does not exist.');
-  };
+    return res.redirect(longURL);
+  }
+  return res.status(404).send('Error 404: Short URL does not exist.');
 });
 
 
