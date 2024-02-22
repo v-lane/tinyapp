@@ -1,3 +1,5 @@
+const bcrypt = require("bcryptjs");
+
 /**
  * Generates pseudo-random 6 character string consisting of alphanumeric characters
  * @returns {string} 
@@ -39,7 +41,7 @@ const authenticateUser = ((users, email, password) => {
   if (!email || !password) {
     return { err: { code: 400, message: "Error 400: email and/or password cannot be empty" }, user: undefined };
   }
-  const userObj = getUserByEmail(users, email) 
+  const userObj = getUserByEmail(users, email);
   if (userObj.err) {
     return userObj;
   }
@@ -57,14 +59,15 @@ const createNewUser = ((users, email, password) => {
   if (!email || !password) {
     return { err: { code: 400, message: "Error 400: email and/or password cannot be empty" }, user: undefined };
   }
-  const userObj = getUserByEmail(users, email)
+  const userObj = getUserByEmail(users, email);
   if (userObj.user) {
     return { err: { code: 400, message: "Error 400: User already exists" }, user: undefined };
   }
   const id = generateRandomString();
-  const newUser = { id, email, password };
-  return {err: undefined, user: newUser}
-})
+  const hashedPass = bcrypt.hashSync(password, 10);
+  const newUser = { id, email, password: hashedPass };
+  return { err: undefined, user: newUser };
+});
 
 
 
@@ -117,8 +120,8 @@ const urlsForUser = function(urls, id) {
  * @returns {boolean}
  */
 const isUserOwnsUrl = function(urls, urlID, cookieUserID) {
-  if (!urlID || !cookieUserID ) return false;
-  
+  if (!urlID || !cookieUserID) return false;
+
   if (cookieUserID === urls[urlID].userID) return true;
   return false;
 };
