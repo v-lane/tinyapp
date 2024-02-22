@@ -103,7 +103,7 @@ app.get("/", (req, res) => {
 // login
 app.get('/login', (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
-  if (cookie_user_id !== undefined) {
+  if (isUserLoggedIn(cookie_user_id)) {
     res.redirect('/urls');
   } else {
     const templateVars = {
@@ -132,7 +132,7 @@ app.post("/login", (req, res) => {
 // register
 app.get('/register', (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
-  if (cookie_user_id !== undefined) {
+  if (isUserLoggedIn(cookie_user_id)) {
     res.redirect('/urls');
   } else {
     const templateVars = {
@@ -178,18 +178,27 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const id = generateRandomString();
-  urlDatabase[id] = req.body.longURL;
-  res.redirect(`/urls/${id}`);
+  const cookie_user_id = req.cookies["user_id"];
+  if (!isUserLoggedIn(cookie_user_id)) {
+    res.send("Error: Cannot shorted URL. Please log in to shorten URLs.");
+  } else {
+    const id = generateRandomString();
+    urlDatabase[id] = req.body.longURL;
+    res.redirect(`/urls/${id}`);
+  }
 });
 
 // new short URL
 app.get("/urls/new", (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
-  const templateVars = {
-    user: userData(cookie_user_id, isUserLoggedIn),
-  };
-  res.render("urls_new", templateVars);
+  if (!isUserLoggedIn(cookie_user_id)) {
+    res.redirect('/urls');
+  } else {
+    const templateVars = {
+      user: userData(cookie_user_id, isUserLoggedIn),
+    };
+    res.render("urls_new", templateVars);
+  }
 });
 
 // short url in detail
