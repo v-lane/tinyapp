@@ -155,8 +155,8 @@ app.post("/urls/:id", (req, res) => {
   if (!isUserOwnsUrl(urlDatabase, urlID, cookie_user_id)) {
     return res.status(401).send("Error 401: Access denied. User does not own URL.");
   }
-  const updatedURL = req.body.updatedLongURL;
-  urlDatabase[urlID].longURL = updatedURL;
+  const longURL = req.body.updatedLongURL;
+  urlDatabase[urlID].longURL = longURL;
   return res.redirect('/urls');
 });
 
