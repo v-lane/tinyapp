@@ -18,7 +18,7 @@ const urlDatabase = {
   "9sm5xK": {
     urlID: "9sm5xK",
     longURL: "http://www.google.com",
-    userID: "9sm5xK"
+    userID: "aJ48lW"
   }
 };
 
@@ -37,6 +37,11 @@ const users = {
     id: "ITqMS2",
     email: "me@example.com",
     password: "me"
+  },
+  aJ48lW: {
+    id: "aJ48lW",
+    email: "hello@example.com",
+    password: "hello"
   }
 };
 
@@ -115,6 +120,23 @@ const isExistingShortUrl = function(id) {
   return false;
 };
 
+/**
+ * Returns object of urlIDs and associated object data for any urlIDs that contain the userID 'id' param. 
+ * @param {string} id - userID 
+ * @returns {object} 
+ */
+const urlsForUser = function(id) {
+  const returnObj = {};
+
+  if (typeof id !== "string") return returnObj;
+
+  for (const urlID in urlDatabase) {
+    if (id === urlDatabase[urlID].userID)
+      returnObj[urlID] = urlDatabase[urlID];
+  }
+  return returnObj;
+};
+
 
 // home
 app.get("/", (req, res) => {
@@ -190,16 +212,26 @@ app.post("/logout", (req, res) => {
 // urls
 app.get("/urls", (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
-  // debugging teste below
+  // debugging tests below
   console.log(`active user ${JSON.stringify(users[cookie_user_id])}`);
   console.log(`all users ${JSON.stringify(users)}`);
   console.log(`urlDatabase ${JSON.stringify(urlDatabase)}`);
   // debugging tests above
-  const templateVars = {
-    user: userData(cookie_user_id, isUserLoggedIn),
-    urls: urlDatabase
-  };
-  res.render("urls_index", templateVars);
+  if (!isUserLoggedIn(cookie_user_id)) {
+    res.status(401).send("Error 401: Please log in or register to access page.");
+  } else {
+    const userURLS = urlsForUser(cookie_user_id)
+    //test below
+    console.log(`userURLS ${JSON.stringify(userURLS)}`)
+    //test above
+    const templateVars = {
+      user: userData(cookie_user_id, isUserLoggedIn),
+      urls: userURLS
+    };
+    res.render("urls_index", templateVars);
+
+
+  }
 });
 
 app.post("/urls", (req, res) => {

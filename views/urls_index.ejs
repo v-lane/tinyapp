@@ -25,30 +25,36 @@
           </tr>
         </thead>
         <tbody>
-          <% for (let id in urls) { %>
-            <tr>
-              <td>
-                <a href="/u/<%= urls[id].urlID %>">
-                  <%= urls[id].urlID %>
-                </a>
-              </td>
-              <td>
-                <a href="<%= urls[id].longURL %>">
-                  <%= urls[id].longURL %>
-                </a>
-              </td>
-              <td>
-                <form method="POST" action="/urls/<%= urls[id].urlID %>/edit">
-                  <button type="submit" class="btn btn-outline-primary">Edit</button>
-                </form>
-              </td>
-              <td>
-                <form method="POST" action="/urls/<%= urls[id].urlID %>/delete">
-                  <button type="submit" class="btn btn-outline-danger">Delete</button>
-                </form>
-              </td>
-            </tr>
+          <% if (Object.keys(urls)[0] === undefined) { %>
+            <p>
+              Create new URL to get started!
+            </p>
+          <% } else { %>
+            <% for (let id in urls) { %>
+              <tr>
+                <td>
+                  <a href="/u/<%= urls[id].urlID %>">
+                    <%= urls[id].urlID %>
+                  </a>
+                </td>
+                <td>
+                  <a href="<%= urls[id].longURL %>">
+                    <%= urls[id].longURL %>
+                  </a>
+                </td>
+                <td>
+                  <form method="POST" action="/urls/<%= urls[id].urlID %>/edit">
+                    <button type="submit" class="btn btn-outline-primary">Edit</button>
+                  </form>
+                </td>
+                <td>
+                  <form method="POST" action="/urls/<%= urls[id].urlID %>/delete">
+                    <button type="submit" class="btn btn-outline-danger">Delete</button>
+                  </form>
+                </td>
+              </tr>
             <% } %>
+          <% } %>
         </tbody>
       </table>
     </main>
