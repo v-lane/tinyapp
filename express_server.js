@@ -161,13 +161,15 @@ app.post('/register', (req, res) => {
   const user = getUserByEmail(user_email);
   if (user_email === "" || user_password === "") {
     res.status(400).send("Error 400: email and/or password cannot be empty");
-  } else if (user_email === users[user].email) {
-    res.status(400).send("Error 400: User already exists.");
-  } else {
+  } else if (user === null) {
     const user_id = generateRandomString();
     users[user_id] = { id: user_id, email: user_email, password: user_password };
     res.cookie("user_id", user_id);
     res.redirect('/urls');
+  } else if (user_email === users[user].email) {
+    res.status(400).send("Error 400: User already exists.");
+  } else {
+    res.status(400).send("Error 400: unknown error with registration input")
   }
 });
 
@@ -180,9 +182,11 @@ app.post("/logout", (req, res) => {
 // urls
 app.get("/urls", (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
-  // recommended by Nally for debugging
+  // debugging teste below
   console.log(`active user ${JSON.stringify(users[cookie_user_id])}`);
   console.log(`all users ${JSON.stringify(users)}`);
+  console.log(`urlDatabase ${JSON.stringify(urlDatabase)}`)
+  // debugging tests above
   const templateVars = {
     user: userData(cookie_user_id, isUserLoggedIn),
     urls: urlDatabase
@@ -193,7 +197,7 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
   if (!isUserLoggedIn(cookie_user_id)) {
-    res.status(401).send("Error 401: Cannot shorted URL. Please log in to shorten URLs.");
+    res.status(401).send("Error 401: Cannot shorten URL. Please log in to shorten URLs.");
   } else {
     const id = generateRandomString();
     urlDatabase[id] = req.body.longURL;
