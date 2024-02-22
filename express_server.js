@@ -47,6 +47,7 @@ const generateRandomString = function() {
   return randomString;
 };
 
+// user-related functions
 /**
  * Given email, checks if user exists in users object.  
  * @param {string} email - email to check against
@@ -93,6 +94,18 @@ const userData = function(user_id, callback) {
   }
 };
 
+// URL related functions
+
+/**
+ * Returns boolean confirming if id value exists in URL database 
+ * @param {string} id - shortURL ID
+ * @returns {boolean}
+ */
+const isExistingShortUrl = function(id) {
+  if (id === undefined) return false;
+  if (urlDatabase[id] !== undefined) return true;
+  return false;
+}
 
 
 // home
@@ -140,7 +153,7 @@ app.get('/register', (req, res) => {
     };
     res.render("register", templateVars);
   };
-});
+});[]
 
 app.post('/register', (req, res) => {
   const user_email = req.body.email;
@@ -180,7 +193,7 @@ app.get("/urls", (req, res) => {
 app.post("/urls", (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
   if (!isUserLoggedIn(cookie_user_id)) {
-    res.send("Error: Cannot shorted URL. Please log in to shorten URLs.");
+    res.status(401).send("Error 401: Cannot shorted URL. Please log in to shorten URLs.");
   } else {
     const id = generateRandomString();
     urlDatabase[id] = req.body.longURL;
@@ -232,8 +245,13 @@ app.post("/urls/:id/delete", (req, res) => {
 
 // external redirect
 app.get('/u/:id', (req, res) => {
-  const longURL = urlDatabase[req.params.id];
-  res.redirect(longURL);
+  const id = req.params.id
+  if (isExistingShortUrl(id)) {
+    const longURL = urlDatabase[id];
+    res.redirect(longURL);
+  } else {
+    res.status(404).send('Error 404: Short URL does not exist.')
+  };
 });
 
 
