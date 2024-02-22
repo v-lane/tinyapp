@@ -5,149 +5,15 @@ const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
+// data
+const { urlDatabase, users } = require('./data');
 
-const urlDatabase = {
-  b2xVn2: {
-    urlID: "b2xVn2",
-    longURL: "http://www.lighthouselabs.ca",
-    userID: "aJ48lW"
-  },
-  "9sm5xK": {
-    urlID: "9sm5xK",
-    longURL: "http://www.google.com",
-    userID: "aJ48lW"
-  }
-};
-
-const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-dino12"
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  },
-  ITqMS2: {
-    id: "ITqMS2",
-    email: "me@example.com",
-    password: "me"
-  },
-  aJ48lW: {
-    id: "aJ48lW",
-    email: "hello@example.com",
-    password: "hello"
-  }
-};
-
-/**
- * Generates pseudo-random 6 character string consisting of alphanumeric characters
- * @returns {string} 
- */
-const generateRandomString = function() {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let x = 0;
-  let randomString = "";
-  while (x < 6) {
-    randomString += (characters[Math.floor(Math.random() * 62)]);
-    x += 1;
-  }
-  return randomString;
-};
-
-// user-related functions
-/**
- * Given email, checks if user exists in users object.  
- * @param {string} email - email to check against
- * @returns {object | null} user object or null
- */
-const getUserByEmail = function(email) {
-  for (const user in users) {
-    if (users[user].email === email) {
-      return user;
-    }
-  }
-  return null;
-};
-
-/**
- * Returns boolean confirming if user_id value from cookies matches user in users object.
- * @param {string} cookie_id - user_id value from cookies
- * @returns {boolean} 
- */
-const isUserLoggedIn = function(cookie_id) {
-  if (cookie_id === undefined) return false;
-  if (users[cookie_id]) return true;
-  return false;
-};
-
-/**
- * Returns user object if callback returns true, otherwise returns empty object.
- * @param {string} user_id - unique user ID
- * @param {function} callback - must return boolean
- * @returns {object}
- */
-const userData = function(user_id, callback) {
-  let userObject = {};
-  try {
-    if (user_id === undefined || callback(user_id) === false) {
-      return userObject;
-    }
-    if (callback(user_id) === true) {
-      userObject = users[user_id];
-      return userObject;
-    }
-  } catch (error) {
-    console.log("!!!! Error in userData function. Check params are valid. user_id must be a string and callback function must return boolean.");
-  }
-};
-
-// URL related functions
-
-/**
- * Returns boolean confirming if id value exists in URL database 
- * @param {string} id - shortURL ID
- * @returns {boolean}
- */
-const isExistingShortUrl = function(id) {
-  if (id === undefined) return false;
-  if (urlDatabase[id] !== undefined) return true;
-  return false;
-};
-
-/**
- * Returns object of urlIDs and associated object data for any urlIDs that contain the userID 'id' param. 
- * @param {string} id - userID 
- * @returns {object} 
- */
-const urlsForUser = function(id) {
-  const returnObj = {};
-
-  if (typeof id !== "string") return returnObj;
-
-  for (const urlID in urlDatabase) {
-    if (id === urlDatabase[urlID].userID)
-      returnObj[urlID] = urlDatabase[urlID];
-  }
-  return returnObj;
-};
-
-/**
- * Return true if urlID is owned by logged-in user, otherwise returns false.
- * @param {string} urlID - urlID for short URL
- * @param {string} cookieUserID - userID for logged in user 
- * @returns {boolean}
- */
-const isUserOwnsUrl = function(urlID, cookieUserID) {
-  if (urlID === undefined) return false;
-  if (cookieUserID === urlDatabase[urlID].userID) return true;
-  return false;
-};
+//functions
+const { getUserByEmail, isUserLoggedIn, createNewUser, isExistingShortUrl, urlsForUser, isUserOwnsUrl, generateRandomString, authenticateUser } = require('./helpers');
 
 
 // home
@@ -162,57 +28,44 @@ app.get('/login', (req, res) => {
     res.redirect('/urls');
   } else {
     const templateVars = {
-      user: userData(cookie_user_id, isUserLoggedIn),
+      user: {},
     };
     res.render("login", templateVars);
   };
 });
 
 app.post("/login", (req, res) => {
-  const user_email = req.body.email;
-  const user_password = req.body.password;
-  const user = getUserByEmail(user_email);
-  if (user_email === "" || user_password === "") {
-    res.status(400).send("Error 400: email and/or password cannot be empty");
-  } else if (user === null) {
-    res.status(403).send('Error 403: user account not found.');
-  } else if (user_password !== users[user].password) {
-    res.status(403).send("Error 403: incorrect password.");
-  } else {
-    res.cookie("user_id", users[user].id);
-    res.redirect('/urls');
+  const { email, password } = req.body;
+  const userObj = authenticateUser(users, email, password);
+  if (userObj.err) {
+    return res.status(userObj.err.code).send(userObj.err.message);
   }
+  res.cookie("user_id", userObj.user.id);
+  return res.redirect('/urls');
 });
 
 // register
 app.get('/register', (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
-  if (isUserLoggedIn(cookie_user_id)) {
-    res.redirect('/urls');
-  } else {
-    const templateVars = {
-      user: userData(cookie_user_id, isUserLoggedIn),
-    };
-    res.render("register", templateVars);
+  if (isUserLoggedIn(users, cookie_user_id)) {
+    return res.redirect('/urls');
+  }
+  const templateVars = {
+    user: {},
   };
-});[];
+  return res.render("register", templateVars);
+});
 
 app.post('/register', (req, res) => {
-  const user_email = req.body.email;
-  const user_password = req.body.password;
-  const user = getUserByEmail(user_email);
-  if (user_email === "" || user_password === "") {
-    res.status(400).send("Error 400: email and/or password cannot be empty");
-  } else if (user === null) {
-    const user_id = generateRandomString();
-    users[user_id] = { id: user_id, email: user_email, password: user_password };
-    res.cookie("user_id", user_id);
-    res.redirect('/urls');
-  } else if (user_email === users[user].email) {
-    res.status(400).send("Error 400: User already exists.");
-  } else {
-    res.status(400).send("Error 400: unknown error with registration input");
+  const { email, password } = req.body;
+  const userObj = createNewUser(users, email, password);
+  if (userObj.err) {
+    return res.status(userObj.err.code).send(userObj.err.message);
   }
+  const newUserID = userObj.user.id;
+  users[newUserID] = userObj.user;
+  res.cookie("user_id", newUserID);
+  return res.redirect('/urls');
 });
 
 // logout
@@ -229,62 +82,58 @@ app.get("/urls", (req, res) => {
   console.log(`all users ${JSON.stringify(users)}`);
   console.log(`urlDatabase ${JSON.stringify(urlDatabase)}`);
   // debugging tests above
-  if (!isUserLoggedIn(cookie_user_id)) {
-    res.status(401).send("Error 401: Please log in or register to access page.");
-  } else {
-    const userURLS = urlsForUser(cookie_user_id);
-    //test below
-    console.log(`userURLS ${JSON.stringify(userURLS)}`);
-    //test above
-    const templateVars = {
-      user: userData(cookie_user_id, isUserLoggedIn),
-      urls: userURLS
-    };
-    res.render("urls_index", templateVars);
 
-
-  }
+  if (!isUserLoggedIn(users, cookie_user_id)) {
+    return res.status(401).send("Error 401: Please log in or register to access page.");
+  };
+  const userURLS = urlsForUser(urlDatabase, cookie_user_id);
+  //test below
+  console.log(`userURLS ${JSON.stringify(userURLS)}`);
+  //test above
+  const user = users[cookie_user_id];
+  const templateVars = {
+    user: user,
+    urls: userURLS
+  };
+  return res.render("urls_index", templateVars);
 });
 
 app.post("/urls", (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
   const longURL = req.body.longURL;
-  if (!isUserLoggedIn(cookie_user_id)) {
-    res.status(401).send("Error 401: Cannot shorten URL. Please log in to shorten URLs.");
-  } else {
-    const urlID = generateRandomString();
-    urlDatabase[urlID] = { urlID: urlID, longURL: longURL, userID: cookie_user_id };
-    res.redirect(`/urls/${urlID}`);
+  if (!isUserLoggedIn(users, cookie_user_id)) {
+    return res.status(401).send("Error 401: Cannot shorten URL. Please log in to shorten URLs.");
   }
+  const urlID = generateRandomString();
+  urlDatabase[urlID] = { urlID: urlID, longURL: longURL, userID: cookie_user_id };
+  return res.redirect(`/urls/${urlID}`);
 });
 
 // new short URL
 app.get("/urls/new", (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
-  if (!isUserLoggedIn(cookie_user_id)) {
-    res.redirect('/urls');
-  } else {
-    const templateVars = {
-      user: userData(cookie_user_id, isUserLoggedIn),
-    };
-    res.render("urls_new", templateVars);
+  if (!isUserLoggedIn(users, cookie_user_id)) {
+    return res.redirect('/urls');
   }
+  const templateVars = {
+    user: users[cookie_user_id],
+  };
+  return res.render("urls_new", templateVars);
 });
 
 // short url in detail
 app.get("/urls/:id", (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
   const urlID = req.params.id;
-  if (!isUserLoggedIn(cookie_user_id)) {
+  if (!isUserLoggedIn(users, cookie_user_id)) {
     res.status(401).send("Error 401: Please log in to access URL details.");
   }
-  if (!isUserOwnsUrl(urlID, cookie_user_id)) {
-    res.status(401).send("Error 401: Access denied. User does not own URL.")
+  if (!isUserOwnsUrl(urlDatabase, urlID, cookie_user_id)) {
+    res.status(401).send("Error 401: Access denied. User does not own URL.");
   }
-  // is URL attached to user? If no, error. If yes, show
   const longURL = urlDatabase[urlID].longURL;
   const templateVars = {
-    user: userData(cookie_user_id, isUserLoggedIn),
+    user: users[cookie_user_id],
     urlID: urlID,
     longURL: longURL
   };
