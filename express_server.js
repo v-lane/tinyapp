@@ -176,7 +176,7 @@ app.post("/urls", (req, res) => {
 
 // new short URL
 app.get("/urls/new", (req, res) => {
-  const cookie_user_id = req.cookies["cookie_user_id"];
+  const cookie_user_id = req.cookies["user_id"];
   const templateVars = {
     user: userData(cookie_user_id, isUserLoggedIn),
   };
@@ -185,7 +185,7 @@ app.get("/urls/new", (req, res) => {
 
 // short url in detail
 app.get("/urls/:id", (req, res) => {
-  const cookie_user_id = req.cookies["cookie_user_id"];
+  const cookie_user_id = req.cookies["user_id"];
   const templateVars = {
     user: userData(cookie_user_id, isUserLoggedIn),
     id: req.params.id,
