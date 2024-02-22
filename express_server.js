@@ -110,12 +110,7 @@ app.get('/login', (req, res) => {
 });
 
 app.post("/login", (req, res) => {
-  const username = req.body.username;
-  if (username !== "") {
-    res.redirect('/urls');
-  }
-  // Likely should add error message to client that username cannot be empty
-  res.redirect('/urls');
+  res.redirect('/login');
 });
 
 // register
@@ -128,6 +123,10 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
+  res.redirect('/register');
+});
+
+app.post('/registerNewUser', (req, res) => {
   const user_email = req.body.email;
   const user_password = req.body.password;
   if (user_email === "" || user_password === "") {
@@ -140,7 +139,7 @@ app.post('/register', (req, res) => {
     res.cookie("user_id", user_id);
     res.redirect('/urls');
   }
-});
+})
 
 // logout
 app.post("/logout", (req, res) => {

@@ -11,21 +11,24 @@
         <a class="nav-item nav-link" href="/urls/new">Create New URL</a>
       </div>
     </div>
-    <% if (Object.keys(user)[0] === undefined ) { %>
-      <form class="form-inline" action="/login" method="POST">
+    <% if (Object.keys(user)[0]===undefined ) { %>
+      <form class="form-inline" action="/register" method="POST">
         <div class="form-group mb-2">
-          <label for="username"></label>
-          <input type="text" class="form-control" name="username" placeholder="Username" />
+          <button type="submit" class="btn btn-outline-dark">Register</button>
+        </div>
+      </form>
+      <form class="form-inline" action="/login" method="POST">
+        <div class="form-group mb-2 ml-2">
           <button type="submit" class="btn btn-outline-dark">Login</button>
         </div>
       </form>
       <% } else { %>
         <form class="form-inline" action="/logout" method="POST">
-          <div class="form-group mb-2">
-            <div>
-              Logged in as: <%= user.email %>!
+          <div class="form-group mb-2 mr-2">
+            Logged in as: <%= user.email %>!
+              <div class="ml-2">
                 <button type="submit" class="btn btn-outline-dark">Logout</button>
-            </div>
+              </div>
         </form>
         <% } %>
   </nav>
