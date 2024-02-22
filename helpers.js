@@ -64,8 +64,7 @@ const createNewUser = ((users, email, password) => {
     return { err: { code: 400, message: "Error 400: User already exists" }, user: undefined };
   }
   const id = generateRandomString();
-  const hashedPass = bcrypt.hashSync(password, 10);
-  const newUser = { id, email, password: hashedPass };
+  const newUser = { id, email, password };
   return { err: undefined, user: newUser };
 });
 

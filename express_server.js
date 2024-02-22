@@ -1,5 +1,6 @@
 const express = require("express");
-const cookieParser = require('cookie-parser');
+// const cookieParser = require('cookie-parser');
+const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
 const app = express();
 const PORT = 8080; // default port 8080
@@ -8,7 +9,11 @@ app.set("view engine", "ejs");
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use(cookieParser());
+// app.use(cookieParser());
+app.use(cookieSession({
+  name: 'session',
+  keys: ['keys']
+}))
 
 // data
 const { urlDatabase, users } = require('./data');
@@ -24,7 +29,7 @@ app.get("/", (req, res) => {
 
 // login
 app.get('/login', (req, res) => {
-  const cookie_user_id = req.cookies["user_id"];
+  const cookie_user_id = req.session.user_id;
   if (isUserLoggedIn(cookie_user_id)) {
     res.redirect('/urls');
   } else {
@@ -41,13 +46,13 @@ app.post("/login", (req, res) => {
   if (userObj.err) {
     return res.status(userObj.err.code).send(userObj.err.message);
   }
-  res.cookie("user_id", userObj.user.id);
+  req.session.user_id = userObj.user.id
   return res.redirect('/urls');
 });
 
 // register
 app.get('/register', (req, res) => {
-  const cookie_user_id = req.cookies["user_id"];
+  const cookie_user_id = req.session.user_id;
   if (isUserLoggedIn(users, cookie_user_id)) {
     return res.redirect('/urls');
   }
@@ -59,13 +64,14 @@ app.get('/register', (req, res) => {
 
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
-  const userObj = createNewUser(users, email, password);
+  const hashedPass = bcrypt.hashSync(password, 10);
+  const userObj = createNewUser(users, email, hashedPass);
   if (userObj.err) {
     return res.status(userObj.err.code).send(userObj.err.message);
   }
   const newUserID = userObj.user.id;
   users[newUserID] = userObj.user;
-  res.cookie("user_id", newUserID);
+  req.session.user_id = newUserID
   return res.redirect('/urls');
 });
 
@@ -77,7 +83,7 @@ app.post("/logout", (req, res) => {
 
 // urls
 app.get("/urls", (req, res) => {
-  const cookie_user_id = req.cookies["user_id"];
+  const cookie_user_id = req.session.user_id;
   // debugging tests below
   console.log(`active user ${JSON.stringify(users[cookie_user_id])}`);
   console.log(`all users ${JSON.stringify(users)}`);
@@ -100,7 +106,7 @@ app.get("/urls", (req, res) => {
 });
 
 app.post("/urls", (req, res) => {
-  const cookie_user_id = req.cookies["user_id"];
+  const cookie_user_id = req.session.user_id;
   const longURL = req.body.longURL;
   if (!isUserLoggedIn(users, cookie_user_id)) {
     return res.status(401).send("Error 401: Cannot shorten URL. Please log in to shorten URLs.");
@@ -112,7 +118,7 @@ app.post("/urls", (req, res) => {
 
 // new short URL
 app.get("/urls/new", (req, res) => {
-  const cookie_user_id = req.cookies["user_id"];
+  const cookie_user_id = req.session.user_id;
   if (!isUserLoggedIn(users, cookie_user_id)) {
     return res.redirect('/urls');
   }
@@ -124,7 +130,7 @@ app.get("/urls/new", (req, res) => {
 
 // short url in detail
 app.get("/urls/:id", (req, res) => {
-  const cookie_user_id = req.cookies["user_id"];
+  const cookie_user_id = req.session.user_id;
   const urlID = req.params.id;
   if (!cookie_user_id) {
     return res.status(401).send("Error 401: Please log in to access URL details.");
@@ -145,7 +151,7 @@ app.get("/urls/:id", (req, res) => {
 });
 
 app.post("/urls/:id", (req, res) => {
-  const cookie_user_id = req.cookies["user_id"];
+  const cookie_user_id = req.session.user_id;
   const urlID = req.params.id;
   if (!isExistingShortUrl(urlDatabase, urlID)) {
     return res.status(404).send("Error 404: URL ID does not exist");
@@ -169,7 +175,7 @@ app.post("/urls/:id/edit", (req, res) => {
 
 // short url - delete
 app.post("/urls/:id/delete", (req, res) => {
-  const cookie_user_id = req.cookies["user_id"];
+  const cookie_user_id = req.session.user_id;
   const urlID = req.params.id;
 
   if (!isExistingShortUrl(urlDatabase, urlID)) {
