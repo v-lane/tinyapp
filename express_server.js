@@ -137,9 +137,10 @@ app.get('/register', (req, res) => {
 app.post('/register', (req, res) => {
   const user_email = req.body.email;
   const user_password = req.body.password;
+  const user = getUserByEmail(user_email);
   if (user_email === "" || user_password === "") {
     res.status(400).send("Error 400: email and/or password cannot be empty");
-  } else if (getUserByEmail(user_email) !== null) {
+  } else if (user_email === users[user].email) {
     res.status(400).send("Error 400: User already exists.");
   } else {
     const user_id = generateRandomString();
