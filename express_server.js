@@ -103,10 +103,14 @@ app.get("/", (req, res) => {
 // login
 app.get('/login', (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
-  const templateVars = {
-    user: userData(cookie_user_id, isUserLoggedIn),
+  if (cookie_user_id !== undefined) {
+    res.redirect('/urls');
+  } else {
+    const templateVars = {
+      user: userData(cookie_user_id, isUserLoggedIn),
+    };
+    res.render("login", templateVars);
   };
-  res.render("login", templateVars);
 });
 
 app.post("/login", (req, res) => {
@@ -128,10 +132,14 @@ app.post("/login", (req, res) => {
 // register
 app.get('/register', (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
-  const templateVars = {
-    user: userData(cookie_user_id, isUserLoggedIn),
+  if (cookie_user_id !== undefined) {
+    res.redirect('/urls');
+  } else {
+    const templateVars = {
+      user: userData(cookie_user_id, isUserLoggedIn),
+    };
+    res.render("register", templateVars);
   };
-  res.render("register", templateVars);
 });
 
 app.post('/register', (req, res) => {
