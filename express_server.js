@@ -101,6 +101,14 @@ app.get("/", (req, res) => {
 });
 
 // login
+app.get('/login', (req, res) => {
+  const cookie_user_id = req.cookies["user_id"];
+  const templateVars = {
+    user: userData(cookie_user_id, isUserLoggedIn),
+  };
+  res.render("login", templateVars);
+});
+
 app.post("/login", (req, res) => {
   const username = req.body.username;
   if (username !== "") {
