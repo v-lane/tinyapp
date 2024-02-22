@@ -61,6 +61,39 @@ const getUserByEmail = function(email) {
   return null;
 };
 
+/**
+ * Returns boolean confirming if user_id value from cookies matches user in users object.
+ * @param {string} cookie_id - user_id value from cookies
+ * @returns {boolean} 
+ */
+const isUserLoggedIn = function(cookie_id) {
+  if (cookie_id === undefined) return false;
+  if (users[cookie_id]) return true;
+  return false;
+};
+
+/**
+ * Returns user object if callback returns true, otherwise returns empty object.
+ * @param {string} user_id - unique user ID
+ * @param {function} callback - must return boolean
+ * @returns {object}
+ */
+const userData = function(user_id, callback) {
+  let userObject = {};
+  try {
+    if (user_id === undefined || callback(user_id) === false) {
+      return userObject;
+    }
+    if (callback(user_id) === true) {
+      userObject = users[user_id];
+      return userObject;
+    }
+  } catch (error) {
+    console.log("!!!! Error in userData function. Check params are valid. user_id must be a string and callback function must return boolean.");
+  }
+};
+
+
 
 // home
 app.get("/", (req, res) => {
@@ -79,8 +112,9 @@ app.post("/login", (req, res) => {
 
 // register
 app.get('/register', (req, res) => {
+  const cookie_user_id = req.cookies["user_id"];
   const templateVars = {
-    user: users[req.cookies["user_id"]],
+    user: userData(cookie_user_id, isUserLoggedIn),
   };
   res.render("register", templateVars);
 });
@@ -91,7 +125,7 @@ app.post('/register', (req, res) => {
   if (user_email === "" || user_password === "") {
     res.status(400).send("Error 400: email and password cannot be empty");
   } else if (getUserByEmail(user_email) !== null) {
-    res.status(400).send("Error 400: User already exists.")
+    res.status(400).send("Error 400: User already exists.");
   } else {
     const user_id = generateRandomString();
     users[user_id] = { id: user_id, email: user_email, password: user_password };
@@ -108,13 +142,12 @@ app.post("/logout", (req, res) => {
 
 // urls
 app.get("/urls", (req, res) => {
+  const cookie_user_id = req.cookies["user_id"];
   // recommended by Nally for debugging
-  const user_id = req.cookies["user_id"];
-  console.log(`active user ${JSON.stringify(users[user_id])}`);
-  console.log(`all users ${JSON.stringify(users)}`)
-
+  console.log(`active user ${JSON.stringify(users[cookie_user_id])}`);
+  console.log(`all users ${JSON.stringify(users)}`);
   const templateVars = {
-    user: users[req.cookies["user_id"]],
+    user: userData(cookie_user_id, isUserLoggedIn),
     urls: urlDatabase
   };
   res.render("urls_index", templateVars);
@@ -128,16 +161,18 @@ app.post("/urls", (req, res) => {
 
 // new short URL
 app.get("/urls/new", (req, res) => {
+  const cookie_user_id = req.cookies["cookie_user_id"];
   const templateVars = {
-    user: users[req.cookies["user_id"]],
+    user: userData(cookie_user_id, isUserLoggedIn),
   };
   res.render("urls_new", templateVars);
 });
 
 // short url in detail
 app.get("/urls/:id", (req, res) => {
+  const cookie_user_id = req.cookies["cookie_user_id"];
   const templateVars = {
-    user: users[req.cookies["user_id"]],
+    user: userData(cookie_user_id, isUserLoggedIn),
     id: req.params.id,
     longURL: urlDatabase[req.params.id]
   };
