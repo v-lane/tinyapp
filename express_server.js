@@ -109,9 +109,9 @@ app.get('/login', (req, res) => {
   res.render("login", templateVars);
 });
 
-app.post("/login", (req, res) => {
-  res.redirect('/login');
-});
+// app.post("/login", (req, res) => {
+//   res.redirect('/login');
+// });
 
 // register
 app.get('/register', (req, res) => {
@@ -123,10 +123,6 @@ app.get('/register', (req, res) => {
 });
 
 app.post('/register', (req, res) => {
-  res.redirect('/register');
-});
-
-app.post('/registerNewUser', (req, res) => {
   const user_email = req.body.email;
   const user_password = req.body.password;
   if (user_email === "" || user_password === "") {

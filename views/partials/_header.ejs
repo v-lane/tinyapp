@@ -12,14 +12,14 @@
       </div>
     </div>
     <% if (Object.keys(user)[0]===undefined ) { %>
-      <form class="form-inline" action="/register" method="POST">
+      <form class="form-inline">
         <div class="form-group mb-2">
-          <button type="submit" class="btn btn-outline-dark">Register</button>
+          <button type="submit" class="btn btn-outline-dark"><a style="text-decoration:none; color: inherit" href="/register">Register</a></button>
         </div>
       </form>
-      <form class="form-inline" action="/login" method="POST">
+      <form class="form-inline">
         <div class="form-group mb-2 ml-2">
-          <button type="submit" class="btn btn-outline-dark">Login</button>
+          <button type="submit" class="btn btn-outline-dark btn-link.diabled"><a style="text-decoration:none; color: inherit" href="/login">Login</a></button>
         </div>
       </form>
       <% } else { %>
