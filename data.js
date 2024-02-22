@@ -1,3 +1,4 @@
+const bcrypt = require("bcryptjs");
 
 const urlDatabase = {
   b2xVn2: {
@@ -18,26 +19,11 @@ const urlDatabase = {
 };
 
 const users = {
-  userRandomID: {
-    id: "userRandomID",
-    email: "user@example.com",
-    password: "purple-dino12"
-  },
-  user2RandomID: {
-    id: "user2RandomID",
-    email: "user2@example.com",
-    password: "dishwasher-funk"
-  },
-  ITqMS2: {
-    id: "ITqMS2",
-    email: "me@example.com",
-    password: "me"
-  },
   aJ48lW: {
     id: "aJ48lW",
     email: "hello@example.com",
-    password: "hello"
+    password: bcrypt.hashSync("hello", 10)
   }
 };
 
-module.exports = { urlDatabase, users }
+module.exports = { urlDatabase, users };

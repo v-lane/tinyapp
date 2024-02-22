@@ -48,7 +48,7 @@ const authenticateUser = ((users, email, password) => {
   if (email !== userObj.user.email) {
     return { err: { code: 403, message: "Error 403: incorrect email" }, user: undefined };
   }
-  if (password !== userObj.user.password) {
+  if (!bcrypt.compareSync(password, userObj.user.password)){
     return { err: { code: 403, message: "Error 403: incorrect password" }, user: undefined };
   }
   return { err: undefined, user: userObj.user };
