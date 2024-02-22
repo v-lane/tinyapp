@@ -137,6 +137,18 @@ const urlsForUser = function(id) {
   return returnObj;
 };
 
+/**
+ * Return true if urlID is owned by logged-in user, otherwise returns false.
+ * @param {string} urlID - urlID for short URL
+ * @param {string} cookieUserID - userID for logged in user 
+ * @returns {boolean}
+ */
+const isUserOwnsUrl = function(urlID, cookieUserID) {
+  if (urlID === undefined) return false;
+  if (cookieUserID === urlDatabase[urlID].userID) return true;
+  return false;
+};
+
 
 // home
 app.get("/", (req, res) => {
@@ -220,9 +232,9 @@ app.get("/urls", (req, res) => {
   if (!isUserLoggedIn(cookie_user_id)) {
     res.status(401).send("Error 401: Please log in or register to access page.");
   } else {
-    const userURLS = urlsForUser(cookie_user_id)
+    const userURLS = urlsForUser(cookie_user_id);
     //test below
-    console.log(`userURLS ${JSON.stringify(userURLS)}`)
+    console.log(`userURLS ${JSON.stringify(userURLS)}`);
     //test above
     const templateVars = {
       user: userData(cookie_user_id, isUserLoggedIn),
@@ -263,6 +275,13 @@ app.get("/urls/new", (req, res) => {
 app.get("/urls/:id", (req, res) => {
   const cookie_user_id = req.cookies["user_id"];
   const urlID = req.params.id;
+  if (!isUserLoggedIn(cookie_user_id)) {
+    res.status(401).send("Error 401: Please log in to access URL details.");
+  }
+  if (!isUserOwnsUrl(urlID, cookie_user_id)) {
+    res.status(401).send("Error 401: Access denied. User does not own URL.")
+  }
+  // is URL attached to user? If no, error. If yes, show
   const longURL = urlDatabase[urlID].longURL;
   const templateVars = {
     user: userData(cookie_user_id, isUserLoggedIn),
