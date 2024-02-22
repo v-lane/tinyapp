@@ -109,9 +109,21 @@ app.get('/login', (req, res) => {
   res.render("login", templateVars);
 });
 
-// app.post("/login", (req, res) => {
-//   res.redirect('/login');
-// });
+app.post("/login", (req, res) => {
+  const user_email = req.body.email;
+  const user_password = req.body.password;
+  const user = getUserByEmail(user_email);
+  if (user_email === "" || user_password === "") {
+    res.status(400).send("Error 400: email and/or password cannot be empty");
+  } else if (user === null) {
+    res.status(403).send('Error 403: user account not found.');
+  } else if (user_password !== users[user].password) {
+    res.status(403).send("Error 403: incorrect password.");
+  } else {
+    res.cookie("user_id", users[user].id);
+    res.redirect('/urls');
+  }
+});
 
 // register
 app.get('/register', (req, res) => {
@@ -126,7 +138,7 @@ app.post('/register', (req, res) => {
   const user_email = req.body.email;
   const user_password = req.body.password;
   if (user_email === "" || user_password === "") {
-    res.status(400).send("Error 400: email and password cannot be empty");
+    res.status(400).send("Error 400: email and/or password cannot be empty");
   } else if (getUserByEmail(user_email) !== null) {
     res.status(400).send("Error 400: User already exists.");
   } else {
@@ -135,7 +147,7 @@ app.post('/register', (req, res) => {
     res.cookie("user_id", user_id);
     res.redirect('/urls');
   }
-})
+});
 
 // logout
 app.post("/logout", (req, res) => {
