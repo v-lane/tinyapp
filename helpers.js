@@ -59,12 +59,13 @@ const createNewUser = ((users, email, password) => {
   if (!email || !password) {
     return { err: { code: 400, message: "Error 400: email and/or password cannot be empty" }, user: undefined };
   }
+  const hashedPass = bcrypt.hashSync(password, 10);
   const userObj = getUserByEmail(users, email);
   if (userObj.user) {
     return { err: { code: 400, message: "Error 400: User already exists" }, user: undefined };
   }
   const id = generateRandomString();
-  const newUser = { id, email, password };
+  const newUser = { id, email, password: hashedPass };
   return { err: undefined, user: newUser };
 });
 

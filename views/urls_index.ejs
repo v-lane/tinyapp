@@ -43,7 +43,7 @@
                   </a>
                 </td>
                 <td>
-                  <form method="POST" action="/urls/<%= urls[id].urlID %>/edit">
+                  <form method="GET" action="/urls/<%= urls[id].urlID %>">
                     <button type="submit" class="btn btn-outline-primary">Edit</button>
                   </form>
                 </td>
@@ -53,7 +53,7 @@
                   </form>
                 </td>
               </tr>
-            <% } %>
+            <% } %> 
           <% } %>
         </tbody>
       </table>

@@ -23,23 +23,22 @@ const { getUserByEmail, isUserLoggedIn, createNewUser, isExistingShortUrl, urlsF
 // home
 app.get("/", (req, res) => {
   const cookie_user_id = req.session.user_id;
-  console.log(`cookie_user_id ${cookie_user_id}`)
-  if (!isUserLoggedIn(cookie_user_id)) {
-    return res.status(302).redirect('/login');
+  if (isUserLoggedIn(users, cookie_user_id)) {
+    return res.redirect('/urls')
   }
-  return res.send("Hello!");
+  return res.status(302).redirect('/login');
 });
 
 // login
 app.get('/login', (req, res) => {
   const cookie_user_id = req.session.user_id;
-  if (isUserLoggedIn(cookie_user_id)) {
-    res.redirect('/urls');
+  if (isUserLoggedIn(users, cookie_user_id)) {
+    return res.redirect('/urls');
   } else {
     const templateVars = {
       user: {},
     };
-    res.render("login", templateVars);
+    return res.render("login", templateVars);
   };
 });
 
@@ -67,8 +66,7 @@ app.get('/register', (req, res) => {
 
 app.post('/register', (req, res) => {
   const { email, password } = req.body;
-  const hashedPass = bcrypt.hashSync(password, 10);
-  const userObj = createNewUser(users, email, hashedPass);
+  const userObj = createNewUser(users, email, password);
   if (userObj.err) {
     return res.status(userObj.err.code).send(userObj.err.message);
   }
@@ -168,12 +166,6 @@ app.post("/urls/:id", (req, res) => {
   const longURL = req.body.updatedLongURL;
   urlDatabase[urlID].longURL = longURL;
   return res.redirect('/urls');
-});
-
-// short url - edit
-app.post("/urls/:id/edit", (req, res) => {
-  const urlID = req.params.id;
-  return res.redirect(`/urls/${urlID}`);
 });
 
 // short url - delete
