@@ -15,15 +15,14 @@ const generateRandomString = function() {
   return randomString;
 };
 
-
-
 // user-related functions
-/**
- * Given email, checks if user exists in users object.  
- * @param {string} email - email to check against
- * @returns {object | null} user object or null
- */
 
+/**
+ * Verifies if user exists in database by checking if email exists. Returns user object containing error and user details. 
+ * @param {object} users - object with all users data
+ * @param {string} email - email to check against
+ * @returns {object} - contains error and user data
+ */
 const getUserByEmail = ((users, email) => {
   if (!email) {
     return { err: { code: 400, message: "Error 400: email cannot be empty" }, user: undefined };
@@ -36,7 +35,13 @@ const getUserByEmail = ((users, email) => {
   return { err: { code: 403, message: "Error 403: user not found" }, user: undefined };
 });
 
-
+/**
+ * Verifies if login details match stored user login details. Returns user object containing error and user details. 
+ * @param {object} users - object with all users data
+ * @param {string} email - email to check against user data
+ * @param {string} password - password to check against user data
+ * @returns {object} - contains error and user data
+ */
 const authenticateUser = ((users, email, password) => {
   if (!email || !password) {
     return { err: { code: 400, message: "Error 400: email and/or password cannot be empty" }, user: undefined };
@@ -54,7 +59,13 @@ const authenticateUser = ((users, email, password) => {
   return { err: undefined, user: userObj.user };
 });
 
-
+/**
+ * Verifies if user account exists. If not, creates new user object. Returns user object containing error and user details. 
+ * @param {object} users - object with all users data
+ * @param {string} email - email to check against user data
+ * @param {string} password - password to check against user data
+ * @returns {object} - contains error and user data
+ */
 const createNewUser = ((users, email, password) => {
   if (!email || !password) {
     return { err: { code: 400, message: "Error 400: email and/or password cannot be empty" }, user: undefined };
@@ -69,10 +80,9 @@ const createNewUser = ((users, email, password) => {
   return { err: undefined, user: newUser };
 });
 
-
-
 /**
  * Returns boolean confirming if user_id value from cookies matches user in users object.
+ * @param {object} users - object with all users data
  * @param {string} cookie_id - user_id value from cookies
  * @returns {boolean} 
  */
@@ -87,6 +97,7 @@ const isUserLoggedIn = function(users, cookie_id) {
 
 /**
  * Returns boolean confirming if id value exists in URL database 
+ * @param {object} urls - object with all saved url data
  * @param {string} id - shortURL ID
  * @returns {boolean}
  */
@@ -98,14 +109,13 @@ const isExistingShortUrl = function(urls, id) {
 
 /**
  * Returns object of urlIDs and associated object data for any urlIDs that contain the userID 'id' param. 
+ * @param {object} urls - object with all saved url data
  * @param {string} id - userID 
  * @returns {object} 
  */
 const urlsForUser = function(urls, id) {
   const returnObj = {};
-
   if (typeof id !== "string") return returnObj;
-
   for (const urlID in urls) {
     if (id === urls[urlID].userID)
       returnObj[urlID] = urls[urlID];
@@ -115,19 +125,16 @@ const urlsForUser = function(urls, id) {
 
 /**
  * Return true if urlID is owned by logged-in user, otherwise returns false.
+ * @param {object} urls - object with all saved url data
  * @param {string} urlID - urlID for short URL
  * @param {string} cookieUserID - userID for logged in user 
  * @returns {boolean}
  */
 const isUrlOwnedByUser = function(urls, urlID, cookieUserID) {
   if (!urlID || !cookieUserID) return false;
-
   if (cookieUserID === urls[urlID].userID) return true;
   return false;
 };
 
 
-
-
-
-module.exports = { getUserByEmail, isUserLoggedIn, createNewUser, isExistingShortUrl, urlsForUser, isUrlOwnedByUser, generateRandomString, authenticateUser };
+module.exports = { isUserLoggedIn, createNewUser, isExistingShortUrl, urlsForUser, isUrlOwnedByUser, generateRandomString, authenticateUser };

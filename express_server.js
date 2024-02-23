@@ -2,7 +2,7 @@ const express = require("express");
 const cookieSession = require('cookie-session');
 const bcrypt = require("bcryptjs");
 const app = express();
-const PORT = 8080; // default port 8080
+const PORT = 8080; 
 
 app.set("view engine", "ejs");
 
@@ -17,8 +17,10 @@ app.use(cookieSession({
 const { urlDatabase, users } = require('./data');
 
 //functions
-const { getUserByEmail, isUserLoggedIn, createNewUser, isExistingShortUrl, urlsForUser, isUrlOwnedByUser, generateRandomString, authenticateUser } = require('./helpers');
+const { isUserLoggedIn, createNewUser, isExistingShortUrl, urlsForUser, isUrlOwnedByUser, generateRandomString, authenticateUser } = require('./helpers');
 
+
+// PAGES
 
 // home
 app.get("/", (req, res) => {
@@ -85,19 +87,10 @@ app.post("/logout", (req, res) => {
 // urls
 app.get("/urls", (req, res) => {
   const cookie_user_id = req.session.user_id;
-  // debugging tests below
-  console.log(`active user ${JSON.stringify(users[cookie_user_id])}`);
-  console.log(`all users ${JSON.stringify(users)}`);
-  console.log(`urlDatabase ${JSON.stringify(urlDatabase)}`);
-  // debugging tests above
-
   if (!isUserLoggedIn(users, cookie_user_id)) {
     return res.status(401).send("Error 401: Please log in or register to access page.");
   };
   const userURLS = urlsForUser(urlDatabase, cookie_user_id);
-  //test below
-  console.log(`userURLS ${JSON.stringify(userURLS)}`);
-  //test above
   const user = users[cookie_user_id];
   const templateVars = {
     user: user,
@@ -197,7 +190,7 @@ app.get('/u/:id', (req, res) => {
 });
 
 
-
+//listen
 app.listen(PORT, () => {
   console.log(`Example app listening on port ${PORT}!`);
 });
