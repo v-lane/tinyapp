@@ -6,8 +6,8 @@ const PORT = 8080; // default port 8080
 
 app.set("view engine", "ejs");
 
+app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 app.use(cookieSession({
   name: 'session',
   keys: ['keys1', 'keys2']
@@ -17,12 +17,17 @@ app.use(cookieSession({
 const { urlDatabase, users } = require('./data');
 
 //functions
-const { getUserByEmail, isUserLoggedIn, createNewUser, isExistingShortUrl, urlsForUser, isUserOwnsUrl, generateRandomString, authenticateUser } = require('./helpers');
+const { getUserByEmail, isUserLoggedIn, createNewUser, isExistingShortUrl, urlsForUser, isUrlOwnedByUser, generateRandomString, authenticateUser } = require('./helpers');
 
 
 // home
 app.get("/", (req, res) => {
-  res.send("Hello!");
+  const cookie_user_id = req.session.user_id;
+  console.log(`cookie_user_id ${cookie_user_id}`)
+  if (!isUserLoggedIn(cookie_user_id)) {
+    return res.status(302).redirect('/login');
+  }
+  return res.send("Hello!");
 });
 
 // login
@@ -118,7 +123,7 @@ app.post("/urls", (req, res) => {
 app.get("/urls/new", (req, res) => {
   const cookie_user_id = req.session.user_id;
   if (!isUserLoggedIn(users, cookie_user_id)) {
-    return res.redirect('/urls');
+    return res.status(302).redirect('/login');
   }
   const templateVars = {
     user: users[cookie_user_id],
@@ -131,13 +136,13 @@ app.get("/urls/:id", (req, res) => {
   const cookie_user_id = req.session.user_id;
   const urlID = req.params.id;
   if (!cookie_user_id) {
-    return res.status(401).send("Error 401: Please log in to access URL details.");
+    return res.status(302).redirect('/login');
   }
   if (!isExistingShortUrl(urlDatabase, urlID)) {
     return res.status(404).send("Error 404: URL ID does not exist");
   }
-  if (!isUserOwnsUrl(urlDatabase, urlID, cookie_user_id)) {
-    return res.status(401).send("Error 401: Access denied. User does not own URL.");
+  if (!isUrlOwnedByUser(urlDatabase, urlID, cookie_user_id)) {
+    return res.status(403).send("Error 403: Access denied. User does not own URL.");
   }
   const longURL = urlDatabase[urlID].longURL;
   const templateVars = {
@@ -157,8 +162,8 @@ app.post("/urls/:id", (req, res) => {
   if (!isUserLoggedIn(users, cookie_user_id)) {
     return res.status(401).send("Error 401: Please log in to access URL details.");
   }
-  if (!isUserOwnsUrl(urlDatabase, urlID, cookie_user_id)) {
-    return res.status(401).send("Error 401: Access denied. User does not own URL.");
+  if (!isUrlOwnedByUser(urlDatabase, urlID, cookie_user_id)) {
+    return res.status(403).send("Error 403: Access denied. User does not own URL.");
   }
   const longURL = req.body.updatedLongURL;
   urlDatabase[urlID].longURL = longURL;
@@ -182,7 +187,7 @@ app.post("/urls/:id/delete", (req, res) => {
   if (!isUserLoggedIn(users, cookie_user_id)) {
     return res.status(401).send("Error 401: Please log in to access URL details.");
   }
-  if (!isUserOwnsUrl(urlDatabase, urlID, cookie_user_id)) {
+  if (!isUrlOwnedByUser(urlDatabase, urlID, cookie_user_id)) {
     return res.status(401).send("Error 401: Access denied. User does not own URL.");
   }
   delete urlDatabase[urlID];

@@ -118,7 +118,7 @@ const urlsForUser = function(urls, id) {
  * @param {string} cookieUserID - userID for logged in user 
  * @returns {boolean}
  */
-const isUserOwnsUrl = function(urls, urlID, cookieUserID) {
+const isUrlOwnedByUser = function(urls, urlID, cookieUserID) {
   if (!urlID || !cookieUserID) return false;
 
   if (cookieUserID === urls[urlID].userID) return true;
@@ -129,4 +129,4 @@ const isUserOwnsUrl = function(urls, urlID, cookieUserID) {
 
 
 
-module.exports = { getUserByEmail, isUserLoggedIn, createNewUser, isExistingShortUrl, urlsForUser, isUserOwnsUrl, generateRandomString, authenticateUser };
+module.exports = { getUserByEmail, isUserLoggedIn, createNewUser, isExistingShortUrl, urlsForUser, isUrlOwnedByUser, generateRandomString, authenticateUser };

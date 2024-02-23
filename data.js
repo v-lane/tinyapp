@@ -12,7 +12,7 @@ const urlDatabase = {
     userID: "aJ48lW"
   },
   "0sm5xK": {
-    urlID: "9sm5xK",
+    urlID: "0sm5xK",
     longURL: "http://www.google.com",
     userID: "fogitw"
   }
