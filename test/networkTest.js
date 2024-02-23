@@ -1,5 +1,6 @@
 const chai = require("chai");
 const chaiHttp = require("chai-http");
+const app = require('../express_server');
 
 const serverUrl = "http://localhost:8080";
 
@@ -9,6 +10,7 @@ const expect = chai.expect;
 describe("Login and Access with Session Cookie", () => {
   it("should return status code 403 for unauthorized access", () => {
     const agent = chai.request.agent(serverUrl);
+
     return agent
       .post("/login")
       .send({

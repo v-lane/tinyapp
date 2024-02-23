@@ -137,4 +137,4 @@ const isUrlOwnedByUser = function(urls, urlID, cookieUserID) {
 };
 
 
-module.exports = { isUserLoggedIn, createNewUser, isExistingShortUrl, urlsForUser, isUrlOwnedByUser, generateRandomString, authenticateUser };
+module.exports = { getUserByEmail, isUserLoggedIn, createNewUser, isExistingShortUrl, urlsForUser, isUrlOwnedByUser, generateRandomString, authenticateUser };
